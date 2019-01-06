@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.16">
+  <DUT Name="SIGNAL" Id="{7c3ea361-50d6-4da5-ae3d-5ff05f0dfbb8}">
+    <Declaration><![CDATA[
+// enum for user triggered signals (buttons)
+TYPE SIGNAL:
+(
+	noSignal 		:= 	-1,
+	
+	// command signals (triggered from kapula)
+	resetSignal		:=	0,
+	startSignal		:= 	1,
+	stopSignal		:= 	2,
+	holdSignal		:= 	3,
+	unHoldSignal	:=	4,
+	suspendSignal	:=	5,
+	unSuspendSignal	:=	6,
+	abortSignal		:=	7,	
+	clearSignal		:= 	8,
+	
+	// unit mode signals (to be decided how to trigger)
+	productionModeSignal	:= 	9,
+	maintenanceModeSignal	:=	10,
+	manualModeSignal		:=	11
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

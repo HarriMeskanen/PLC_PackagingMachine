@@ -1,0 +1,80 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.16">
+  <POU Name="Robot" Id="{4157a4ec-321e-422b-a1d1-68c974b07a39}" SpecialFunc="None">
+    <Declaration><![CDATA[
+// class for robot units.
+FUNCTION_BLOCK Robot EXTENDS UnitBaseClass
+VAR_INPUT
+	inputMode		:	E_PMLProtectedUnitMode;
+	inputCommand	:	E_PMLCommand;
+	//inputAxes		:	ST_KinAxes;
+END_VAR
+VAR_OUTPUT
+	pos		:	E6POS;
+END_VAR
+VAR
+	//axes	:	ST_KinAxes;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF NOT initialized THEN
+	SUPER^(modeCommand:=inputMode, command:=inputCommand);
+	// axes := inputAxes;
+END_IF
+]]></ST>
+    </Implementation>
+    <Method Name="fkine" Id="{fdeeb45d-ca6e-4d23-9004-40bbb1bd3b18}">
+      <Declaration><![CDATA[METHOD fkine : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ikine" Id="{2381d57d-ea26-4bd9-9cbe-9a28e869140f}">
+      <Declaration><![CDATA[METHOD ikine : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="moveFree" Id="{8aa14a30-984d-425d-8468-eb4cf31a65dd}">
+      <Declaration><![CDATA[METHOD moveFree : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="moveLinear" Id="{f6f4b16f-ceac-4e73-a5da-a4bc7eee3a64}">
+      <Declaration><![CDATA[METHOD moveLinear : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="Robot">
+      <LineId Id="16" Count="1" />
+      <LineId Id="20" Count="0" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="Robot.fkine">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="Robot.ikine">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="Robot.moveFree">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="Robot.moveLinear">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

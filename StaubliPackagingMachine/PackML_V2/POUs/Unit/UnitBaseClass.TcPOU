@@ -1,0 +1,492 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.16">
+  <POU Name="UnitBaseClass" Id="{aeb6491f-b3ec-42f8-9416-1e872ebf9f16}" SpecialFunc="None">
+    <Declaration><![CDATA[
+// BASE CLASS FOR EVERY UNIT/MACHINE IN THE SYSTEM
+	// consists of modemanager, statemachine, UnitState interface
+	// and setMode and setState methods.
+	
+	// UnitState interface's methods must be implemented in derived classes of UnitBaseClass
+	// and MUST call this class' M_StateComplete as their last command
+	
+	// this function block is only meant to be run once (initialize values)
+	
+FUNCTION_BLOCK UnitBaseClass IMPLEMENTS ITF_UnitState
+VAR_INPUT
+	// input parameters for startup state and unit mode
+	modeCommand	:	E_PMLProtectedUnitMode;
+	command		:	E_PMLCommand;
+END_VAR
+VAR_OUTPUT
+	currentMode		:	DINT;
+	currentState	:	E_PMLState;
+	initialized		:	BOOL		:= 	FALSE;
+END_VAR
+VAR
+	
+	unitModeManager		:	PML_UnitModeManager;
+	stateMachine		:	PML_StateMachine;	
+	wasHereSuper	:	INT	:= 	0;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF (NOT initialized) THEN
+	
+	//enable unitmodemanager
+	unitModeManager.bExecute := TRUE;
+	
+	// if initialization was success return true
+	IF (setMode(modeCommand:=modeCommand) AND setState(command := command)) THEN
+		initialized := TRUE;
+	END_IF
+END_IF
+]]></ST>
+    </Implementation>
+    <Method Name="M_Aborted" Id="{997c4508-d824-4ccb-92c7-e4b4e83ad8e2}">
+      <Declaration><![CDATA[
+METHOD M_Aborted
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Aborting" Id="{a2cab866-18ab-4c9f-aeb9-c9ff213eaeb6}">
+      <Declaration><![CDATA[// M_Aborting is an 'acting' type state called in UnitBaseClass::setState()
+// due to rising signal of emergency stop button.
+
+// the implementation is done in derived classes
+METHOD M_Aborting
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[M_StateComplete();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Clearing" Id="{5a749b99-c3ec-4cf4-ab18-53664f2d3c57}">
+      <Declaration><![CDATA[{warning 'add method implementation'}
+METHOD M_Clearing
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[M_StateComplete();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Complete" Id="{76cf367f-98e3-4f00-83f6-5769137b65bb}">
+      <Declaration><![CDATA[{warning 'add method implementation'}
+METHOD M_Complete
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Completing" Id="{78e8f8f9-ab57-4e3f-87f0-12cd71f50a99}">
+      <Declaration><![CDATA[{warning 'add method implementation'}
+METHOD M_Completing
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[M_StateComplete();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Execute" Id="{6d32e3b0-53a6-4d94-a000-39c1f1969c06}">
+      <Declaration><![CDATA[{warning 'add method implementation'}
+METHOD M_Execute
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Held" Id="{18859718-e822-41fd-8bf8-24e252ff5705}">
+      <Declaration><![CDATA[{warning 'add method implementation'}
+METHOD M_Held
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Holding" Id="{66dc536e-543c-4dee-baaf-e266bc29ac19}">
+      <Declaration><![CDATA[{warning 'add method implementation'}
+METHOD M_Holding
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[M_StateComplete();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Idle" Id="{3c447920-8f82-4329-ac21-183fdac9bac6}">
+      <Declaration><![CDATA[{warning 'add method implementation'}
+METHOD M_Idle
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Resetting" Id="{0e63659c-91b5-4ac9-960a-4290e83bba6d}">
+      <Declaration><![CDATA[{warning 'add method implementation'}
+METHOD M_Resetting
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[M_StateComplete();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Starting" Id="{0e8572ed-7889-4440-9c77-d48046bbb65a}">
+      <Declaration><![CDATA[{warning 'add method implementation'}
+METHOD M_Starting
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[M_StateComplete();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_StateComplete" Id="{a5711707-f478-4de0-8048-bf66597864d5}">
+      <Declaration><![CDATA[
+// PML_StateMachine::M_StateCompleted() is what actually 
+// changes the state from acting state to wait state.
+// that's why this method is called after every '-ing' (acting) state.
+
+METHOD M_StateComplete
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[stateMachine.M_StateComplete();
+currentState := stateMachine.eState;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Stopped" Id="{5642a46b-167d-4c98-ba93-28ffdb6b987a}">
+      <Declaration><![CDATA[{warning 'add method implementation'}
+METHOD M_Stopped
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Stopping" Id="{679d777b-9988-4d27-8f5e-b6dafa5ed1b2}">
+      <Declaration><![CDATA[{warning 'add method implementation'}
+METHOD M_Stopping
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[M_StateComplete();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Suspended" Id="{26b8c5db-c8b7-4d74-b505-1be26ec27b4f}">
+      <Declaration><![CDATA[{warning 'add method implementation'}
+METHOD M_Suspended
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Suspending" Id="{b46f7b58-5421-43f5-be83-a525fe1292c9}">
+      <Declaration><![CDATA[{warning 'add method implementation'}
+METHOD M_Suspending
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[M_StateComplete();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Undefined" Id="{3d18d60d-4641-4a9e-9873-889667e8c9d6}">
+      <Declaration><![CDATA[{warning 'add method implementation'}
+METHOD M_Undefined
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Unholding" Id="{76f1bc42-e0c3-4882-9776-963356027530}">
+      <Declaration><![CDATA[{warning 'add method implementation'}
+METHOD M_Unholding
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[M_StateComplete();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_Unsuspending" Id="{7e1f4aa9-a082-4c68-a8b2-237274d1d344}">
+      <Declaration><![CDATA[{warning 'add method implementation'}
+METHOD M_Unsuspending
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[M_StateComplete();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="setMode" Id="{00f6f159-0a01-4f23-adfc-9258cf4fd8f7}">
+      <Declaration><![CDATA[METHOD setMode : BOOL
+VAR_INPUT
+	modeCommand	:	DINT;
+END_VAR
+VAR
+	prevMode	:	E_PMLProtectedUnitMode;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// save current mode as previous mode
+prevMode := currentMode;
+
+// update current mode
+unitModeManager(eModeCommand := modeCommand, 
+				eState := currentState,
+				eModeStatus => currentMode);
+				
+// check if mode was changed, if not return false
+IF(currentMode = prevMode) OR (currentMode = ePMLProtUnitMode_Invalid) THEN
+	setMode := FALSE;
+	RETURN;
+END_IF
+
+setMode := TRUE;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="setState" Id="{29595849-60fa-4f5d-9eec-19649e04e713}">
+      <Declaration><![CDATA[
+// setState method. Attempts to change the state of unit according to 
+// the given input command which is a result of received user signal (startButton, stopButton ... ).
+
+(* possible commands :	
+	ePMLCommand_Undefined   := 0,
+	ePMLCommand_Reset       := 1,
+	ePMLCommand_Start       := 2,
+	ePMLCommand_Stop        := 3,
+	ePMLCommand_Hold        := 4,
+	ePMLCommand_Unhold      := 5,
+	ePMLCommand_Suspend     := 6,
+	ePMLCommand_Unsuspend   := 7,
+	ePMLCommand_Abort       := 8,
+	ePMLCommand_Clear       := 9
+*)
+
+METHOD setState : BOOL
+VAR_INPUT
+	command	:	E_PMLCommand;
+END_VAR
+VAR
+	prevState	:	E_PMLState;	
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[wasHereSuper	:= wasHereSuper + 1;
+// save current state as previous state
+prevState := currentState;
+
+// update current state
+stateMachine(eMode:=currentMode, eCommand:=command, eState=>currentState);
+
+// check whether the state was changed, if not return false
+IF (currentState = prevState) OR (currentState = ePMLState_Undefined) THEN
+	setState := FALSE;
+	RETURN;
+END_IF
+
+setState := TRUE;
+
+// run resulted state method.
+CASE currentState OF
+	
+	ePMLState_Undefined:
+		M_Undefined();
+	
+    ePMLState_Clearing:
+		M_Clearing();
+		
+    ePMLState_Stopped:
+		M_Stopped();
+		
+    ePMLState_Starting:
+		M_Starting();
+		
+    ePMLState_Idle:
+		M_Idle();
+		
+    ePMLState_Suspended:
+		M_Suspended();
+		
+    ePMLState_Execute:
+		M_Execute();
+		
+    ePMLState_Stopping:
+		M_Stopping();
+		
+    ePMLState_Aborting:
+		M_Aborting();
+		
+    ePMLState_Aborted:
+		M_Aborted();
+		
+    ePMLState_Holding:
+		M_Holding();
+		
+    ePMLState_Held:
+		M_Held();
+		
+    ePMLState_Unholding:
+		M_Unholding();
+		
+    ePMLState_Suspending:
+		M_Suspending();
+		
+    ePMLState_Unsuspending:
+		M_Unsuspending();
+		
+    ePMLState_Resetting:
+		M_Resetting();
+		
+    ePMLState_Completing:
+		M_Completing();
+		
+    ePMLState_Complete:
+		M_Complete();
+		
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="UnitBaseClass">
+      <LineId Id="27" Count="0" />
+      <LineId Id="79" Count="0" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="65" Count="0" />
+      <LineId Id="85" Count="1" />
+      <LineId Id="70" Count="2" />
+      <LineId Id="49" Count="0" />
+      <LineId Id="59" Count="0" />
+    </LineIds>
+    <LineIds Name="UnitBaseClass.M_Aborted">
+      <LineId Id="4" Count="0" />
+    </LineIds>
+    <LineIds Name="UnitBaseClass.M_Aborting">
+      <LineId Id="4" Count="0" />
+    </LineIds>
+    <LineIds Name="UnitBaseClass.M_Clearing">
+      <LineId Id="4" Count="0" />
+    </LineIds>
+    <LineIds Name="UnitBaseClass.M_Complete">
+      <LineId Id="4" Count="0" />
+    </LineIds>
+    <LineIds Name="UnitBaseClass.M_Completing">
+      <LineId Id="4" Count="0" />
+    </LineIds>
+    <LineIds Name="UnitBaseClass.M_Execute">
+      <LineId Id="4" Count="0" />
+    </LineIds>
+    <LineIds Name="UnitBaseClass.M_Held">
+      <LineId Id="4" Count="0" />
+    </LineIds>
+    <LineIds Name="UnitBaseClass.M_Holding">
+      <LineId Id="4" Count="0" />
+    </LineIds>
+    <LineIds Name="UnitBaseClass.M_Idle">
+      <LineId Id="4" Count="0" />
+    </LineIds>
+    <LineIds Name="UnitBaseClass.M_Resetting">
+      <LineId Id="4" Count="0" />
+    </LineIds>
+    <LineIds Name="UnitBaseClass.M_Starting">
+      <LineId Id="4" Count="0" />
+    </LineIds>
+    <LineIds Name="UnitBaseClass.M_StateComplete">
+      <LineId Id="4" Count="0" />
+      <LineId Id="11" Count="0" />
+    </LineIds>
+    <LineIds Name="UnitBaseClass.M_Stopped">
+      <LineId Id="4" Count="0" />
+    </LineIds>
+    <LineIds Name="UnitBaseClass.M_Stopping">
+      <LineId Id="4" Count="0" />
+    </LineIds>
+    <LineIds Name="UnitBaseClass.M_Suspended">
+      <LineId Id="4" Count="0" />
+    </LineIds>
+    <LineIds Name="UnitBaseClass.M_Suspending">
+      <LineId Id="4" Count="0" />
+    </LineIds>
+    <LineIds Name="UnitBaseClass.M_Undefined">
+      <LineId Id="4" Count="0" />
+    </LineIds>
+    <LineIds Name="UnitBaseClass.M_Unholding">
+      <LineId Id="4" Count="0" />
+    </LineIds>
+    <LineIds Name="UnitBaseClass.M_Unsuspending">
+      <LineId Id="4" Count="0" />
+    </LineIds>
+    <LineIds Name="UnitBaseClass.setMode">
+      <LineId Id="13" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="16" Count="1" />
+      <LineId Id="20" Count="2" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="28" Count="0" />
+    </LineIds>
+    <LineIds Name="UnitBaseClass.setState">
+      <LineId Id="143" Count="0" />
+      <LineId Id="23" Count="1" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="112" Count="0" />
+      <LineId Id="141" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="113" Count="0" />
+      <LineId Id="84" Count="0" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="30" Count="0" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="31" Count="0" />
+      <LineId Id="49" Count="0" />
+      <LineId Id="67" Count="0" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="50" Count="0" />
+      <LineId Id="68" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="51" Count="0" />
+      <LineId Id="69" Count="0" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="70" Count="0" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="53" Count="0" />
+      <LineId Id="71" Count="0" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="54" Count="0" />
+      <LineId Id="72" Count="0" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="55" Count="0" />
+      <LineId Id="73" Count="0" />
+      <LineId Id="38" Count="0" />
+      <LineId Id="56" Count="0" />
+      <LineId Id="74" Count="0" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="57" Count="0" />
+      <LineId Id="75" Count="0" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="76" Count="0" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="77" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="78" Count="0" />
+      <LineId Id="43" Count="0" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="79" Count="0" />
+      <LineId Id="44" Count="0" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="80" Count="0" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="63" Count="0" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="46" Count="0" />
+      <LineId Id="64" Count="0" />
+      <LineId Id="82" Count="0" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="65" Count="0" />
+      <LineId Id="83" Count="0" />
+      <LineId Id="29" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

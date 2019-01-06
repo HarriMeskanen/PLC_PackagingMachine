@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.16">
+  <GVL Name="PERS_GV" Id="{18f25541-8d57-4470-9074-dc9f60f37d55}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL PERSISTENT
+	// axis values etc
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

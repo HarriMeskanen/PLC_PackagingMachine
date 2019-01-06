@@ -1,0 +1,116 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.16">
+  <POU Name="PackagingMachine" Id="{e40f1bcf-914a-46e4-8341-5bc96b0bd344}" SpecialFunc="None">
+    <Declaration><![CDATA[// PackagingMachine object represents the packaging machine as a whole.
+
+// right now though the packaging machine only consists of staubli robot,
+// but in future projects of extending the system it is now "easy" to do so.
+
+FUNCTION_BLOCK PackagingMachine EXTENDS UnitBaseClass
+VAR_INPUT
+	// initialization inputs
+	inputMode		:	E_PMLProtectedUnitMode;
+	inputCommand	:	E_PMLCommand;
+	
+	// buttons for state changes. only 6 can be used though (6 buttons in kapula)
+	resetButton		AT %I*:	BIT;
+	startButton		AT %I*:	BIT;
+	stopButton		AT %I*:	BIT;
+	holdButton		AT %I*:	BIT;
+	unHoldButton	AT %I*:	BIT;
+	suspendButton	AT %I*:	BIT;
+	unSuspendButton	AT %I*:	BIT;
+	abortButton		AT %I*:	BIT;
+	clearButton		AT %I*:	BIT;
+	
+	// mode change buttons
+	productionModeButton	AT %I*:	BIT;
+	maintenanceModeButton	AT %I*:	BIT;
+	manualModeButton		AT %I*:	BIT;
+	
+END_VAR
+VAR_OUTPUT
+	
+END_VAR
+VAR
+	// container for subunits. atm only 1 subunit.
+	subUnits	:	POINTER TO ARRAY[1..CONST_GV.nSubUnits] OF UnitBaseClass	:=	0;
+	
+	
+	
+	//counter for initialization
+	i	:	INT;
+
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF NOT initialized THEN
+	SUPER^(modeCommand:=inputMode, command:=inputCommand);
+	
+	IF subUnits = 0 THEN
+		// subUnitsError, call setSubUnits() before PackagingMachine()
+		RETURN;
+	END_IF
+	
+	FOR i:=1 TO CONST_GV.nSubUnits BY 1 DO
+		// if any of the sub units is uninitialized then the whole machine is too
+		IF NOT subUnits^[i].initialized THEN
+			THIS^.initialized := FALSE;
+		END_IF
+	END_FOR
+END_IF
+]]></ST>
+    </Implementation>
+    <Method Name="getSignal" Id="{7e808999-f9a3-49f7-878e-9238055c1aa0}">
+      <Declaration><![CDATA[METHOD getSignal : INT
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="setSubUnits" Id="{a79c9608-393b-4cda-b3b8-4d26a056df0e}">
+      <Declaration><![CDATA[METHOD setSubUnits : BOOL
+VAR_INPUT
+	inSubUnits	:	POINTER TO ARRAY[1..CONST_GV.nSubUnits] OF UnitBaseClass;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF subUnits <> 0 THEN
+	setSubUnits := FALSE;
+	RETURN;
+END_IF
+
+subUnits := inSubUnits;
+setSubUnits := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="PackagingMachine">
+      <LineId Id="9" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="50" Count="0" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="51" Count="1" />
+      <LineId Id="63" Count="0" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="59" Count="2" />
+      <LineId Id="57" Count="0" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="104" Count="0" />
+    </LineIds>
+    <LineIds Name="PackagingMachine.getSignal">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="PackagingMachine.setSubUnits">
+      <LineId Id="7" Count="1" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="12" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
