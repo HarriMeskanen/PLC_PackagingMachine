@@ -36,11 +36,8 @@ VAR
 	// container for subunits. atm only 1 subunit.
 	subUnits	:	POINTER TO ARRAY[1..CONST_GV.nSubUnits] OF UnitBaseClass	:=	0;
 	
-	
-	
 	//counter for initialization
 	i	:	INT;
-
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -128,6 +125,65 @@ END_IF
 ]]></ST>
       </Implementation>
     </Method>
+    <Method Name="setMode" Id="{6cffb050-7983-4a44-b97a-e4ac48023a93}">
+      <Declaration><![CDATA[METHOD setMode : BOOL
+VAR_INPUT
+	modeCommand	:	DINT;
+END_VAR
+VAR
+	prevMode	:	E_PMLProtectedUnitMode;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// if any of the subUnits cannot change mode to given mode return false
+FOR i:=1 TO CONST_GV.nSubUnits BY 1 DO
+	IF NOT subUnits^[i].setMode(modeCommand:=modeCommand) THEN
+		setMode := FALSE;
+		RETURN;
+	END_IF
+END_FOR
+SUPER^.setMode(modeCommand:=modeCommand);
+setMode := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="setState" Id="{c823ce98-0c6a-43f4-9247-d13fb9a55279}">
+      <Declaration><![CDATA[
+// setState method. Attempts to change the state of unit according to 
+// the given input command which is a result of received user signal (startButton, stopButton ... ).
+
+(* possible commands :	
+	ePMLCommand_Undefined   := 0,
+	ePMLCommand_Reset       := 1,
+	ePMLCommand_Start       := 2,
+	ePMLCommand_Stop        := 3,
+	ePMLCommand_Hold        := 4,
+	ePMLCommand_Unhold      := 5,
+	ePMLCommand_Suspend     := 6,
+	ePMLCommand_Unsuspend   := 7,
+	ePMLCommand_Abort       := 8,
+	ePMLCommand_Clear       := 9
+*)
+
+METHOD setState : BOOL
+VAR_INPUT
+	command	:	E_PMLCommand;
+END_VAR
+VAR
+	prevState	:	E_PMLState;
+	i			:	INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// if any of the subUnits cannot change state to given state return false
+FOR i:=1 TO CONST_GV.nSubUnits BY 1 DO
+	IF NOT subUnits^[i].setState(command:=command) THEN
+		setState := FALSE;
+		RETURN;
+	END_IF
+END_FOR
+SUPER^.setState(command:=command);
+setState := TRUE;]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="setSubUnits" Id="{a79c9608-393b-4cda-b3b8-4d26a056df0e}">
       <Declaration><![CDATA[METHOD setSubUnits : BOOL
 VAR_INPUT
@@ -186,6 +242,21 @@ setSubUnits := TRUE;]]></ST>
       <LineId Id="13" Count="0" />
       <LineId Id="10" Count="0" />
       <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="PackagingMachine.setMode">
+      <LineId Id="9" Count="7" />
+      <LineId Id="8" Count="0" />
+    </LineIds>
+    <LineIds Name="PackagingMachine.setState">
+      <LineId Id="35" Count="0" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="30" Count="0" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="31" Count="0" />
+      <LineId Id="29" Count="0" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="33" Count="0" />
     </LineIds>
     <LineIds Name="PackagingMachine.setSubUnits">
       <LineId Id="7" Count="1" />

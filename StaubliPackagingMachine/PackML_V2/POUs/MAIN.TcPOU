@@ -4,7 +4,7 @@
     <Declaration><![CDATA[PROGRAM MAIN
 VAR
 	
-	ready				:	BOOL	:= FALSE;
+	running				:	BOOL	:= FALSE;
 	packagingMachine	:	PackagingMachine;
 	input				:	BOOL;
 	
@@ -12,9 +12,11 @@ END_VAR
 
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[IF NOT ready THEN
+      <ST><![CDATA[// ready when packagingmachine is initialized
+// initialized when in stopped state and modemanager enabled
+IF NOT running THEN
 	IF machineConfig() THEN
-		ready := TRUE;
+		running := TRUE;
 	ELSE
 		// configurationError
 	END_IF
@@ -59,7 +61,9 @@ END_IF
 ]]></ST>
     </Implementation>
     <Method Name="machineConfig" Id="{ee0c57fb-4377-4f15-bbe7-651c309e3778}">
-      <Declaration><![CDATA[METHOD machineConfig : BOOL
+      <Declaration><![CDATA[// machine config is used to initialize all units.
+
+METHOD machineConfig : BOOL
 VAR_INPUT
 END_VAR
 VAR
@@ -72,14 +76,15 @@ VAR
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[
-// subUnit1 - Staubli
-staubli(inputMode:=mode, 
+// 		subUnit1 - Staubli
+staubli(inputMode:=mode,
 		inputCommand:=command);
 subUnits[1] := staubli;
 
 
-// subUnits2..n
-// ...
+// 		subUnit2 ... subUnitn
+// subUnit2();
+// subUnits[2] := subUnit2;
 
 
 // assign all the created subunits to packaging machine
@@ -100,6 +105,7 @@ END_IF
       </Implementation>
     </Method>
     <LineIds Name="MAIN">
+      <LineId Id="139" Count="1" />
       <LineId Id="38" Count="0" />
       <LineId Id="55" Count="0" />
       <LineId Id="57" Count="0" />
@@ -131,13 +137,13 @@ END_IF
     <LineIds Name="MAIN.machineConfig">
       <LineId Id="7" Count="0" />
       <LineId Id="6" Count="0" />
-      <LineId Id="8" Count="0" />
-      <LineId Id="17" Count="0" />
+      <LineId Id="57" Count="1" />
       <LineId Id="22" Count="0" />
       <LineId Id="38" Count="0" />
       <LineId Id="35" Count="0" />
       <LineId Id="26" Count="0" />
       <LineId Id="36" Count="0" />
+      <LineId Id="63" Count="0" />
       <LineId Id="44" Count="0" />
       <LineId Id="43" Count="0" />
       <LineId Id="42" Count="0" />

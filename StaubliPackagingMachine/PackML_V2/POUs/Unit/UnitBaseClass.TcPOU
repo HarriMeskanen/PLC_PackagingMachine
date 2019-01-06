@@ -23,10 +23,8 @@ VAR_OUTPUT
 	initialized		:	BOOL		:= 	FALSE;
 END_VAR
 VAR
-	
 	unitModeManager		:	PML_UnitModeManager;
 	stateMachine		:	PML_StateMachine;	
-	wasHereSuper	:	INT	:= 	0;
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -35,13 +33,86 @@ END_VAR
 	//enable unitmodemanager
 	unitModeManager.bExecute := TRUE;
 	
-	// if initialization was success return true
-	IF (setMode(modeCommand:=modeCommand) AND setState(command := command)) THEN
+	// if initialization was success set machine initialized
+	// THIS^. doesnt work for whatever reason... still cals packagingMachine.setState() !!! 
+	// therefore there's a stupid hack in packagingMachine.setState/mode methods to skip
+	// if uninitialized
+	IF (THIS^.setMode(modeCommand:=modeCommand) AND THIS^.setState(command := command)) THEN
+		// set initialized
 		initialized := TRUE;
 	END_IF
+
 END_IF
 ]]></ST>
     </Implementation>
+    <Method Name="alreadyActive" Id="{abf6862a-6a8e-446b-a34e-cd46048e8a83}">
+      <Declaration><![CDATA[// method for checking if command is already being executed/has been executed
+// for example if currentState is stopped then stop command is called
+// this method returns true and nothing happens in setState method (where this method is called)
+
+METHOD alreadyActive : BOOL
+VAR_INPUT
+	command 		:	E_PMLCommand;
+	currentState	:	E_PMLState;
+END_VAR
+
+(* possible commands :	
+	ePMLCommand_Undefined   := 0,
+	ePMLCommand_Reset       := 1,
+	ePMLCommand_Start       := 2,
+	ePMLCommand_Stop        := 3,
+	ePMLCommand_Hold        := 4,
+	ePMLCommand_Unhold      := 5,
+	ePMLCommand_Suspend     := 6,
+	ePMLCommand_Unsuspend   := 7,
+	ePMLCommand_Abort       := 8,
+	ePMLCommand_Clear       := 9
+*)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+CASE command OF
+	0: 	IF currentState = ePMLState_Undefined THEN
+			alreadyActive := TRUE;
+		END_IF		
+	
+	1: 	IF currentState = ePMLState_Resetting OR currentState = ePMLState_Idle THEN
+			alreadyActive := TRUE;
+		END_IF
+		
+	2: IF currentState = ePMLState_Starting OR currentState = ePMLState_Execute THEN
+			alreadyActive := TRUE;
+		END_IF
+	
+	3: 	IF currentState = ePMLState_Stopping OR currentState = ePMLState_Stopped THEN
+			alreadyActive := TRUE;
+		END_IF
+	
+	4: 	IF currentState = ePMLState_Holding OR currentState = ePMLState_Held THEN
+			alreadyActive := TRUE;
+		END_IF
+	
+	5: 	IF currentState = ePMLState_UnHolding OR currentState = ePMLState_Execute THEN
+			alreadyActive := TRUE;
+		END_IF
+	
+	6: 	IF currentState = ePMLState_Suspending OR currentState = ePMLState_Suspended THEN
+			alreadyActive := TRUE;
+		END_IF
+	
+	7: 	IF currentState = ePMLState_Unsuspending OR currentState = ePMLState_Execute THEN
+			alreadyActive := TRUE;
+		END_IF
+	
+	8: 	IF currentState = ePMLState_Aborting OR currentState = ePMLState_Aborted THEN
+			alreadyActive := TRUE;
+		END_IF
+	
+	9:	IF currentState = ePMLState_Clearing OR currentState = ePMLState_Stopped THEN
+			alreadyActive := TRUE;
+		END_IF 	
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="M_Aborted" Id="{997c4508-d824-4ccb-92c7-e4b4e83ad8e2}">
       <Declaration><![CDATA[
 METHOD M_Aborted
@@ -211,7 +282,13 @@ VAR
 	prevMode	:	E_PMLProtectedUnitMode;
 END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[// save current mode as previous mode
+        <ST><![CDATA[// check if tryign to cahnge mode to one that is already active
+IF modeCommand = currentMode THEN
+	setMode := TRUE;
+	RETURN;
+END_IF
+
+// save current mode as previous mode
 prevMode := currentMode;
 
 // update current mode
@@ -234,6 +311,15 @@ setMode := TRUE;
 // setState method. Attempts to change the state of unit according to 
 // the given input command which is a result of received user signal (startButton, stopButton ... ).
 
+
+METHOD setState : BOOL
+VAR_INPUT
+	command	:	E_PMLCommand;
+END_VAR
+VAR
+	prevState	:	E_PMLState;	
+END_VAR
+
 (* possible commands :	
 	ePMLCommand_Undefined   := 0,
 	ePMLCommand_Reset       := 1,
@@ -245,18 +331,15 @@ setMode := TRUE;
 	ePMLCommand_Unsuspend   := 7,
 	ePMLCommand_Abort       := 8,
 	ePMLCommand_Clear       := 9
-*)
-
-METHOD setState : BOOL
-VAR_INPUT
-	command	:	E_PMLCommand;
-END_VAR
-VAR
-	prevState	:	E_PMLState;	
-END_VAR
-]]></Declaration>
+*)]]></Declaration>
       <Implementation>
-        <ST><![CDATA[wasHereSuper	:= wasHereSuper + 1;
+        <ST><![CDATA[// for example if currentState is starting and start button 
+// is pressed nothing happens
+IF alreadyActive(command:=command, currentState:=currentState) THEN
+	setState := TRUE;
+	RETURN;
+END_IF
+
 // save current state as previous state
 prevState := currentState;
 
@@ -334,12 +417,45 @@ END_CASE]]></ST>
     <LineIds Name="UnitBaseClass">
       <LineId Id="27" Count="0" />
       <LineId Id="79" Count="0" />
-      <LineId Id="60" Count="0" />
-      <LineId Id="65" Count="0" />
-      <LineId Id="85" Count="1" />
-      <LineId Id="70" Count="2" />
+      <LineId Id="138" Count="0" />
+      <LineId Id="137" Count="0" />
+      <LineId Id="139" Count="0" />
+      <LineId Id="86" Count="0" />
+      <LineId Id="125" Count="0" />
+      <LineId Id="133" Count="1" />
+      <LineId Id="70" Count="0" />
+      <LineId Id="136" Count="0" />
+      <LineId Id="131" Count="0" />
+      <LineId Id="72" Count="0" />
+      <LineId Id="117" Count="0" />
       <LineId Id="49" Count="0" />
       <LineId Id="59" Count="0" />
+    </LineIds>
+    <LineIds Name="UnitBaseClass.alreadyActive">
+      <LineId Id="46" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="43" Count="1" />
+      <LineId Id="22" Count="1" />
+      <LineId Id="48" Count="1" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="52" Count="1" />
+      <LineId Id="26" Count="1" />
+      <LineId Id="55" Count="1" />
+      <LineId Id="28" Count="1" />
+      <LineId Id="57" Count="1" />
+      <LineId Id="30" Count="1" />
+      <LineId Id="59" Count="1" />
+      <LineId Id="32" Count="1" />
+      <LineId Id="61" Count="1" />
+      <LineId Id="34" Count="1" />
+      <LineId Id="63" Count="1" />
+      <LineId Id="36" Count="1" />
+      <LineId Id="66" Count="1" />
+      <LineId Id="38" Count="1" />
+      <LineId Id="69" Count="1" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="20" Count="0" />
     </LineIds>
     <LineIds Name="UnitBaseClass.M_Aborted">
       <LineId Id="4" Count="0" />
@@ -400,6 +516,12 @@ END_CASE]]></ST>
       <LineId Id="4" Count="0" />
     </LineIds>
     <LineIds Name="UnitBaseClass.setMode">
+      <LineId Id="54" Count="0" />
+      <LineId Id="49" Count="0" />
+      <LineId Id="51" Count="0" />
+      <LineId Id="53" Count="0" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="50" Count="0" />
       <LineId Id="13" Count="0" />
       <LineId Id="5" Count="0" />
       <LineId Id="19" Count="0" />
@@ -415,6 +537,12 @@ END_CASE]]></ST>
       <LineId Id="28" Count="0" />
     </LineIds>
     <LineIds Name="UnitBaseClass.setState">
+      <LineId Id="169" Count="0" />
+      <LineId Id="173" Count="0" />
+      <LineId Id="168" Count="0" />
+      <LineId Id="170" Count="0" />
+      <LineId Id="172" Count="0" />
+      <LineId Id="171" Count="0" />
       <LineId Id="143" Count="0" />
       <LineId Id="23" Count="1" />
       <LineId Id="16" Count="0" />
