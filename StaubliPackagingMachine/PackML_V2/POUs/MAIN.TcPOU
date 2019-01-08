@@ -21,40 +21,36 @@ IF NOT running THEN
 		// configurationError
 	END_IF
 	
-ELSE	
+ELSE
 	CASE packagingMachine.getSignal() OF
-		noSignal:	
-			input := TRUE;
+		noSignal:
+			packagingMachine();
 			
 		startSignal:
-			input := packagingMachine.setState(command:=ePMLCommand_Start);
+			packagingMachine.setState(command:=ePMLCommand_Start);
 			
 		stopSignal:
-			input := packagingMachine.setState(command:=ePMLCommand_Stop);
+			packagingMachine.setState(command:=ePMLCommand_Stop);
 		
 		abortSignal:
-			input := packagingMachine.setState(command:=ePMLCommand_Abort);
+			packagingMachine.setState(command:=ePMLCommand_Abort);
 				
 		resetSignal:
-			input := packagingMachine.setState(command:=ePMLCommand_Reset);
+			packagingMachine.setState(command:=ePMLCommand_Reset);
 			
 		clearSignal:
-			input := packagingMachine.setState(command:=ePMLCommand_Clear);
+			packagingMachine.setState(command:=ePMLCommand_Clear);
 
 		productionModeSignal:
-			input := packagingMachine.setMode(modeCommand:=ePMLProtUnitMode_Production);
+			packagingMachine.setMode(modeCommand:=ePMLProtUnitMode_Production);
 			
 		maintenanceModeSignal:
-			input := packagingMachine.setMode(modeCommand:=ePMLProtUnitMode_Maintenance);
+			packagingMachine.setMode(modeCommand:=ePMLProtUnitMode_Maintenance);
 			
 		manualModeSignal:
-			input := packagingMachine.setMode(modeCommand:=ePMLProtUnitMode_Manual);
+			packagingMachine.setMode(modeCommand:=ePMLProtUnitMode_Manual);
 			
 	END_CASE
-	
-	IF NOT input THEN
-		// invalidSignalError
-	END_IF
 	
 END_IF
 
@@ -67,40 +63,30 @@ METHOD machineConfig : BOOL
 VAR_INPUT
 END_VAR
 VAR
-	mode		:	E_PMLProtectedUnitMode	:= 	ePMLProtUnitMode_Production;
-	command		:	E_PMLCommand			:=	ePMLCommand_Stop;
+	initMode		:	E_PMLProtectedUnitMode	:= 	ePMLProtUnitMode_Production;
+	initCommand		:	E_PMLCommand			:=	ePMLCommand_Stop;
 	
 	subUnits	:	ARRAY[1..CONST_GV.nSubUnits] OF UnitBaseClass;
 	staubli		:	Robot;
-	//axes		:	ST_KinAxes;
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[
 // 		subUnit1 - Staubli
-staubli(inputMode:=mode,
-		inputCommand:=command);
 subUnits[1] := staubli;
 
 
 // 		subUnit2 ... subUnitn
-// subUnit2();
 // subUnits[2] := subUnit2;
 
 
-// assign all the created subunits to packaging machine
-packagingMachine.setSubUnits(inSubUnits:=ADR(subUnits));
+// initialize
+packagingMachine.initialize(arg1	:=	initMode, 
+							arg2	:=	initCommand, 
+							arg3	:=	ADR(subUnits));
 
-
-// see if everything was correctly initialized
-packagingMachine(	inputMode:=mode, 
-					inputCommand:=command);
-
-
-IF packagingMachine.initialized THEN
-	machineConfig := TRUE;
-ELSE
-	machineConfig := FALSE;
-END_IF
+							
+// return initialization status							
+machineConfig := packagingMachine.initialized;
 ]]></ST>
       </Implementation>
     </Method>
@@ -127,8 +113,6 @@ END_IF
       <LineId Id="120" Count="0" />
       <LineId Id="122" Count="7" />
       <LineId Id="94" Count="0" />
-      <LineId Id="114" Count="0" />
-      <LineId Id="111" Count="2" />
       <LineId Id="115" Count="0" />
       <LineId Id="56" Count="0" />
       <LineId Id="62" Count="0" />
@@ -137,27 +121,19 @@ END_IF
     <LineIds Name="MAIN.machineConfig">
       <LineId Id="7" Count="0" />
       <LineId Id="6" Count="0" />
-      <LineId Id="57" Count="1" />
       <LineId Id="22" Count="0" />
       <LineId Id="38" Count="0" />
       <LineId Id="35" Count="0" />
       <LineId Id="26" Count="0" />
-      <LineId Id="36" Count="0" />
       <LineId Id="63" Count="0" />
       <LineId Id="44" Count="0" />
       <LineId Id="43" Count="0" />
       <LineId Id="42" Count="0" />
       <LineId Id="37" Count="0" />
-      <LineId Id="45" Count="0" />
-      <LineId Id="27" Count="0" />
-      <LineId Id="19" Count="0" />
-      <LineId Id="21" Count="0" />
-      <LineId Id="24" Count="0" />
-      <LineId Id="40" Count="0" />
+      <LineId Id="76" Count="1" />
+      <LineId Id="79" Count="0" />
+      <LineId Id="78" Count="0" />
       <LineId Id="20" Count="0" />
-      <LineId Id="16" Count="0" />
-      <LineId Id="28" Count="0" />
-      <LineId Id="30" Count="1" />
       <LineId Id="29" Count="0" />
       <LineId Id="41" Count="0" />
     </LineIds>

@@ -5,21 +5,17 @@
 // class for robot units.
 FUNCTION_BLOCK Robot EXTENDS UnitBaseClass
 VAR_INPUT
-	inputMode		:	E_PMLProtectedUnitMode;
-	inputCommand	:	E_PMLCommand;
-	//inputAxes		:	ST_KinAxes;
+	//axes		:	ST_KinAxes;
 END_VAR
 VAR_OUTPUT
 	pos		:	E6POS;
 END_VAR
 VAR
-	//axes	:	ST_KinAxes;
+	//power	:	MC_Power;
+	//status	:	ST_AxisStatus;
 END_VAR]]></Declaration>
     <Implementation>
-      <ST><![CDATA[IF NOT initialized THEN
-	SUPER^(modeCommand:=inputMode, command:=inputCommand);
-	// axes := inputAxes;
-END_IF
+      <ST><![CDATA[
 ]]></ST>
     </Implementation>
     <Method Name="fkine" Id="{fdeeb45d-ca6e-4d23-9004-40bbb1bd3b18}">
@@ -38,6 +34,20 @@ END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="initialize" Id="{21efacf5-0fc7-47df-a6ba-978e18a9b45b}">
+      <Declaration><![CDATA[METHOD initialize	:	BOOL
+VAR_INPUT
+	arg1 	:	E_PMLProtectedUnitMode;
+	arg2	:	E_PMLCommand;
+	arg3	:	POINTER TO ARRAY[1..CONST_GV.nSubUnits] OF UnitBaseClass;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[SUPER^.initialize(arg1:=arg1, arg2:=arg2, arg3:=0);
+
+// initialize axis etc]]></ST>
       </Implementation>
     </Method>
     <Method Name="moveFree" Id="{8aa14a30-984d-425d-8468-eb4cf31a65dd}">
@@ -59,8 +69,6 @@ END_VAR
       </Implementation>
     </Method>
     <LineIds Name="Robot">
-      <LineId Id="16" Count="1" />
-      <LineId Id="20" Count="0" />
       <LineId Id="18" Count="0" />
       <LineId Id="9" Count="0" />
     </LineIds>
@@ -69,6 +77,11 @@ END_VAR
     </LineIds>
     <LineIds Name="Robot.ikine">
       <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="Robot.initialize">
+      <LineId Id="7" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="8" Count="0" />
     </LineIds>
     <LineIds Name="Robot.moveFree">
       <LineId Id="5" Count="0" />

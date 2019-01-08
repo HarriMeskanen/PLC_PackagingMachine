@@ -15,6 +15,9 @@
     <LibraryReferences>{93f37c42-02ed-4c50-89f8-6d6690104f46}</LibraryReferences>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="DUTs\Button.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="GVLs\CONST_GV.TcGVL">
       <SubType>Code</SubType>
       <LinkAlways>true</LinkAlways>
@@ -54,6 +57,10 @@
     <Folder Include="POUs" />
   </ItemGroup>
   <ItemGroup>
+    <PlaceholderReference Include="Tc2_MC2">
+      <DefaultResolution>Tc2_MC2, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc2_MC2</Namespace>
+    </PlaceholderReference>
     <PlaceholderReference Include="Tc2_Standard">
       <DefaultResolution>Tc2_Standard, * (Beckhoff Automation GmbH)</DefaultResolution>
       <Namespace>Tc2_Standard</Namespace>
@@ -66,9 +73,9 @@
       <DefaultResolution>Tc3_Module, * (Beckhoff Automation GmbH)</DefaultResolution>
       <Namespace>Tc3_Module</Namespace>
     </PlaceholderReference>
-    <PlaceholderReference Include="Tc3_mxAutomationV3_0">
-      <DefaultResolution>Tc3_mxAutomationV3_0, * (Beckhoff Automation GmbH)</DefaultResolution>
-      <Namespace>Tc3_mxAutomationV3_0</Namespace>
+    <PlaceholderReference Include="Tc3_mxAutomation">
+      <DefaultResolution>Tc3_mxAutomation, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc3_mxAutomation</Namespace>
     </PlaceholderReference>
     <PlaceholderReference Include="Tc3_PackML_V2">
       <DefaultResolution>Tc3_PackML_V2, * (Beckhoff Automation GmbH)</DefaultResolution>
@@ -81,8 +88,8 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PlaceholderResolution Include="Tc3_mxAutomationV3_0">
-      <Resolution>Tc3_mxAutomationV3_0, * (Beckhoff Automation GmbH)</Resolution>
+    <PlaceholderResolution Include="Tc3_mxAutomation">
+      <Resolution>Tc3_mxAutomation, * (Beckhoff Automation GmbH)</Resolution>
     </PlaceholderResolution>
   </ItemGroup>
   <ProjectExtensions>

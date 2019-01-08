@@ -3,7 +3,13 @@
   <GVL Name="PERS_GV" Id="{18f25541-8d57-4470-9074-dc9f60f37d55}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 VAR_GLOBAL PERSISTENT
-	// axis values etc
+	// only first three axises available
+	 //R1	:	AXIS_REF;
+	 //R2	:	AXIS_REF;
+	 //R3	:	AXIS_REF;
+	// R4	:	AXIS_REF;
+	// R5	:	AXIS_REF;
+	// R6	:	AXIS_REF;
 END_VAR]]></Declaration>
   </GVL>
 </TcPlcObject>

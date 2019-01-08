@@ -6,44 +6,25 @@
 	// consists of modemanager, statemachine, UnitState interface
 	// and setMode and setState methods.
 	
-	// UnitState interface's methods must be implemented in derived classes of UnitBaseClass
-	// and MUST call this class' M_StateComplete as their last command
-	
-	// this function block is only meant to be run once (initialize values)
 	
 FUNCTION_BLOCK UnitBaseClass IMPLEMENTS ITF_UnitState
 VAR_INPUT
-	// input parameters for startup state and unit mode
-	modeCommand	:	E_PMLProtectedUnitMode;
-	command		:	E_PMLCommand;
+
 END_VAR
 VAR_OUTPUT
 	currentMode		:	DINT;
 	currentState	:	E_PMLState;
-	initialized		:	BOOL		:= 	FALSE;
+	initialized		:	BOOL;
 END_VAR
 VAR
 	unitModeManager		:	PML_UnitModeManager;
-	stateMachine		:	PML_StateMachine;	
+	stateMachine		:	PML_StateMachine;
+	inModeTransition	:	BOOL	:=	FALSE;
+	inStateTransition	:	BOOL	:= 	FALSE;
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[IF (NOT initialized) THEN
-	
-	//enable unitmodemanager
-	unitModeManager.bExecute := TRUE;
-	
-	// if initialization was success set machine initialized
-	// THIS^. doesnt work for whatever reason... still cals packagingMachine.setState() !!! 
-	// therefore there's a stupid hack in packagingMachine.setState/mode methods to skip
-	// if uninitialized
-	IF (THIS^.setMode(modeCommand:=modeCommand) AND THIS^.setState(command := command)) THEN
-		// set initialized
-		initialized := TRUE;
-	END_IF
-
-END_IF
-]]></ST>
+      <ST><![CDATA[]]></ST>
     </Implementation>
     <Method Name="alreadyActive" Id="{abf6862a-6a8e-446b-a34e-cd46048e8a83}">
       <Declaration><![CDATA[// method for checking if command is already being executed/has been executed
@@ -111,6 +92,29 @@ CASE command OF
 			alreadyActive := TRUE;
 		END_IF 	
 END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="initialize" Id="{3ae08684-a4b0-4726-989d-d72a44c2b4d8}">
+      <Declaration><![CDATA[METHOD initialize	:	BOOL
+VAR_INPUT
+	arg1 	:	E_PMLProtectedUnitMode; 	// 	unitModeCommand
+	arg2	:	E_PMLCommand;				//	command
+	arg3	:	POINTER TO ARRAY[1..CONST_GV.nSubUnits] OF UnitBaseClass := 0; // subUnits
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[unitModeManager.bExecute := TRUE;
+
+IF (NOT (THIS^.setMode(modeCommand:=arg1) AND THIS^.setState(command := arg2)) ) THEN
+	// set initialized
+	unitModeManager.bExecute := FALSE;
+	RETURN;
+END_IF
+
+// instance property
+THIS^.initialized := TRUE;
+// method return value
+initialize := TRUE;]]></ST>
       </Implementation>
     </Method>
     <Method Name="M_Aborted" Id="{997c4508-d824-4ccb-92c7-e4b4e83ad8e2}">
@@ -214,7 +218,8 @@ METHOD M_StateComplete
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[stateMachine.M_StateComplete();
-currentState := stateMachine.eState;]]></ST>
+currentState := stateMachine.eState;
+inStateTransition := FALSE;]]></ST>
       </Implementation>
     </Method>
     <Method Name="M_Stopped" Id="{5642a46b-167d-4c98-ba93-28ffdb6b987a}">
@@ -352,31 +357,19 @@ IF (currentState = prevState) OR (currentState = ePMLState_Undefined) THEN
 	RETURN;
 END_IF
 
+inStateTransition := TRUE;
 setState := TRUE;
 
 // run resulted state method.
-CASE currentState OF
-	
+CASE currentState OF	
 	ePMLState_Undefined:
 		M_Undefined();
 	
-    ePMLState_Clearing:
-		M_Clearing();
-		
-    ePMLState_Stopped:
-		M_Stopped();
+	ePMLState_Resetting:
+		M_Resetting();
 		
     ePMLState_Starting:
-		M_Starting();
-		
-    ePMLState_Idle:
-		M_Idle();
-		
-    ePMLState_Suspended:
-		M_Suspended();
-		
-    ePMLState_Execute:
-		M_Execute();
+		M_Starting();		
 		
     ePMLState_Stopping:
 		M_Stopping();
@@ -384,14 +377,8 @@ CASE currentState OF
     ePMLState_Aborting:
 		M_Aborting();
 		
-    ePMLState_Aborted:
-		M_Aborted();
-		
     ePMLState_Holding:
 		M_Holding();
-		
-    ePMLState_Held:
-		M_Held();
 		
     ePMLState_Unholding:
 		M_Unholding();
@@ -400,35 +387,15 @@ CASE currentState OF
 		M_Suspending();
 		
     ePMLState_Unsuspending:
-		M_Unsuspending();
+		M_Unsuspending();		
 		
-    ePMLState_Resetting:
-		M_Resetting();
-		
-    ePMLState_Completing:
-		M_Completing();
-		
-    ePMLState_Complete:
-		M_Complete();
-		
-END_CASE]]></ST>
+	ePMLState_Clearing:
+		M_Clearing();		
+END_CASE
+]]></ST>
       </Implementation>
     </Method>
     <LineIds Name="UnitBaseClass">
-      <LineId Id="27" Count="0" />
-      <LineId Id="79" Count="0" />
-      <LineId Id="138" Count="0" />
-      <LineId Id="137" Count="0" />
-      <LineId Id="139" Count="0" />
-      <LineId Id="86" Count="0" />
-      <LineId Id="125" Count="0" />
-      <LineId Id="133" Count="1" />
-      <LineId Id="70" Count="0" />
-      <LineId Id="136" Count="0" />
-      <LineId Id="131" Count="0" />
-      <LineId Id="72" Count="0" />
-      <LineId Id="117" Count="0" />
-      <LineId Id="49" Count="0" />
       <LineId Id="59" Count="0" />
     </LineIds>
     <LineIds Name="UnitBaseClass.alreadyActive">
@@ -456,6 +423,18 @@ END_CASE]]></ST>
       <LineId Id="69" Count="1" />
       <LineId Id="40" Count="0" />
       <LineId Id="20" Count="0" />
+    </LineIds>
+    <LineIds Name="UnitBaseClass.initialize">
+      <LineId Id="26" Count="0" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="11" Count="2" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="31" Count="0" />
+      <LineId Id="29" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="30" Count="0" />
     </LineIds>
     <LineIds Name="UnitBaseClass.M_Aborted">
       <LineId Id="4" Count="0" />
@@ -493,6 +472,7 @@ END_CASE]]></ST>
     <LineIds Name="UnitBaseClass.M_StateComplete">
       <LineId Id="4" Count="0" />
       <LineId Id="11" Count="0" />
+      <LineId Id="18" Count="0" />
     </LineIds>
     <LineIds Name="UnitBaseClass.M_Stopped">
       <LineId Id="4" Count="0" />
@@ -554,32 +534,17 @@ END_CASE]]></ST>
       <LineId Id="112" Count="0" />
       <LineId Id="141" Count="0" />
       <LineId Id="19" Count="0" />
-      <LineId Id="10" Count="0" />
-      <LineId Id="113" Count="0" />
+      <LineId Id="208" Count="0" />
+      <LineId Id="210" Count="0" />
+      <LineId Id="209" Count="0" />
       <LineId Id="84" Count="0" />
       <LineId Id="27" Count="0" />
       <LineId Id="26" Count="0" />
-      <LineId Id="47" Count="0" />
       <LineId Id="30" Count="0" />
-      <LineId Id="66" Count="0" />
-      <LineId Id="48" Count="0" />
-      <LineId Id="31" Count="0" />
-      <LineId Id="49" Count="0" />
-      <LineId Id="67" Count="0" />
-      <LineId Id="32" Count="0" />
-      <LineId Id="50" Count="0" />
-      <LineId Id="68" Count="0" />
+      <LineId Id="66" Count="1" />
+      <LineId Id="205" Count="2" />
       <LineId Id="33" Count="0" />
       <LineId Id="51" Count="0" />
-      <LineId Id="69" Count="0" />
-      <LineId Id="34" Count="0" />
-      <LineId Id="52" Count="0" />
-      <LineId Id="70" Count="0" />
-      <LineId Id="35" Count="0" />
-      <LineId Id="53" Count="0" />
-      <LineId Id="71" Count="0" />
-      <LineId Id="36" Count="0" />
-      <LineId Id="54" Count="0" />
       <LineId Id="72" Count="0" />
       <LineId Id="37" Count="0" />
       <LineId Id="55" Count="0" />
@@ -587,15 +552,9 @@ END_CASE]]></ST>
       <LineId Id="38" Count="0" />
       <LineId Id="56" Count="0" />
       <LineId Id="74" Count="0" />
-      <LineId Id="39" Count="0" />
-      <LineId Id="57" Count="0" />
-      <LineId Id="75" Count="0" />
       <LineId Id="40" Count="0" />
       <LineId Id="58" Count="0" />
       <LineId Id="76" Count="0" />
-      <LineId Id="41" Count="0" />
-      <LineId Id="59" Count="0" />
-      <LineId Id="77" Count="0" />
       <LineId Id="42" Count="0" />
       <LineId Id="60" Count="0" />
       <LineId Id="78" Count="0" />
@@ -604,17 +563,9 @@ END_CASE]]></ST>
       <LineId Id="79" Count="0" />
       <LineId Id="44" Count="0" />
       <LineId Id="62" Count="0" />
-      <LineId Id="80" Count="0" />
-      <LineId Id="45" Count="0" />
-      <LineId Id="63" Count="0" />
-      <LineId Id="81" Count="0" />
-      <LineId Id="46" Count="0" />
-      <LineId Id="64" Count="0" />
-      <LineId Id="82" Count="0" />
-      <LineId Id="28" Count="0" />
-      <LineId Id="65" Count="0" />
-      <LineId Id="83" Count="0" />
+      <LineId Id="202" Count="2" />
       <LineId Id="29" Count="0" />
+      <LineId Id="200" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.16">
+  <DUT Name="Button" Id="{9ba32ffa-6ea4-4230-923d-ddfb0b90b7fb}">
+    <Declaration><![CDATA[// struct for command buttons (kapula)
+TYPE Button :
+STRUCT
+	isPressed	AT	%I*	:	BIT;
+	isLit		AT	%Q*	:	BOOL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

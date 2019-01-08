@@ -16,58 +16,31 @@
 					<Vars VarGrpType="1">
 						<Name>PlcTask Inputs</Name>
 						<Var>
-							<Name>MAIN.packagingMachine.resetButton</Name>
-							<Comment>
-								<![CDATA[ buttons for state changes. only 6 can be used though (6 buttons in kapula)]]>
-							</Comment>
+							<Name>MAIN.packagingMachine.resetButton.isPressed</Name>
 							<Type>BIT</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.packagingMachine.startButton</Name>
+							<Name>MAIN.packagingMachine.startButton.isPressed</Name>
 							<Type>BIT</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.packagingMachine.stopButton</Name>
+							<Name>MAIN.packagingMachine.stopButton.isPressed</Name>
 							<Type>BIT</Type>
 						</Var>
+					</Vars>
+					<Vars VarGrpType="2">
+						<Name>PlcTask Outputs</Name>
 						<Var>
-							<Name>MAIN.packagingMachine.holdButton</Name>
-							<Type>BIT</Type>
+							<Name>MAIN.packagingMachine.resetButton.isLit</Name>
+							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.packagingMachine.unHoldButton</Name>
-							<Type>BIT</Type>
+							<Name>MAIN.packagingMachine.startButton.isLit</Name>
+							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.packagingMachine.suspendButton</Name>
-							<Type>BIT</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.packagingMachine.unSuspendButton</Name>
-							<Type>BIT</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.packagingMachine.abortButton</Name>
-							<Type>BIT</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.packagingMachine.clearButton</Name>
-							<Type>BIT</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.packagingMachine.productionModeButton</Name>
-							<Comment>
-								<![CDATA[ mode change buttons]]>
-							</Comment>
-							<Type>BIT</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.packagingMachine.maintenanceModeButton</Name>
-							<Type>BIT</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.packagingMachine.manualModeButton</Name>
-							<Type>BIT</Type>
+							<Name>MAIN.packagingMachine.stopButton.isLit</Name>
+							<Type>BOOL</Type>
 						</Var>
 					</Vars>
 					<TaskPouOids>

@@ -8,55 +8,37 @@
 
 FUNCTION_BLOCK PackagingMachine EXTENDS UnitBaseClass
 VAR_INPUT
-	// initialization inputs
-	inputMode		:	E_PMLProtectedUnitMode;
-	inputCommand	:	E_PMLCommand;
+	// reset button
+	resetButton		:	Button;
+	// start button
+	startButton		:	Button;	
+	// stop button
+	stopButton		:	Button;
+	// emergency stop
+	abortButton		:	BOOL;
+	// clear emergency stop 
+	clearButton		:	BOOL;
 	
-	// buttons for state changes. only 6 can be used though (6 buttons in kapula)
-	resetButton		AT %I*:	BIT;
-	startButton		AT %I*:	BIT;
-	stopButton		AT %I*:	BIT;
-	holdButton		AT %I*:	BIT;
-	unHoldButton	AT %I*:	BIT;
-	suspendButton	AT %I*:	BIT;
-	unSuspendButton	AT %I*:	BIT;
-	abortButton		AT %I*:	BIT;
-	clearButton		AT %I*:	BIT;
-	
-	// mode change buttons
-	productionModeButton	AT %I*:	BIT;
-	maintenanceModeButton	AT %I*:	BIT;
-	manualModeButton		AT %I*:	BIT;
-	
+	(* not connected to IO
+	holdButton		:	Button;
+	unHoldButton	:	Button;
+	suspendButton	:	Button;
+	unSuspendButton	:	Button
+	*)
+
+	// mode change buttons (do not exist in real life)
+	productionModeButton	:	BIT;
+	maintenanceModeButton	:	BIT;
+	manualModeButton		:	BIT;	
 END_VAR
 VAR_OUTPUT
-	
 END_VAR
 VAR
-	// container for subunits. atm only 1 subunit.
-	subUnits	:	POINTER TO ARRAY[1..CONST_GV.nSubUnits] OF UnitBaseClass	:=	0;
-	
-	//counter for initialization
-	i	:	INT;
+	subUnits	:	POINTER TO ARRAY[1..CONST_GV.nSubUnits] OF UnitBaseClass;
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[IF NOT initialized THEN
-	SUPER^(modeCommand:=inputMode, command:=inputCommand);
-	
-	IF subUnits = 0 THEN
-		// subUnitsError, call setSubUnits() before PackagingMachine()
-		RETURN;
-	END_IF
-	
-	FOR i:=1 TO CONST_GV.nSubUnits BY 1 DO
-		// if any of the sub units is uninitialized then the whole machine is too
-		IF NOT subUnits^[i].initialized THEN
-			THIS^.initialized := FALSE;
-		END_IF
-	END_FOR
-END_IF
-]]></ST>
+      <ST><![CDATA[]]></ST>
     </Implementation>
     <Method Name="getSignal" Id="{7e808999-f9a3-49f7-878e-9238055c1aa0}">
       <Declaration><![CDATA[METHOD getSignal : INT
@@ -72,38 +54,46 @@ END_VAR
 IF abortButton THEN
 	getSignal := abortSignal;
 	RETURN;
+END_IF
+
+//in currently in active state (starting, stopping, etc..) ignore
+IF inStateTransition THEN
+	RETURN;
+END_IF
 	
-ELSIF stopButton THEN
+IF stopButton.isPressed THEN
 	getSignal := stopSignal;
 	RETURN;
 	
-ELSIF startButton THEN
+ELSIF startButton.isPressed THEN
 	getSignal := startSignal;
 	RETURN;
 	
-ELSIF resetButton THEN
+ELSIF resetButton.isPressed THEN
 	getSignal := resetSignal;
 	RETURN;
 	
 ELSIF clearButton THEN
 	getSignal := clearSignal;
 	RETURN;
-	
-ELSIF holdButton THEN
+
+(*	
+ELSIF holdButton.isPressed THEN
 	getSignal := holdSignal;
 	RETURN;
 	
-ELSIF unHoldButton THEN
+ELSIF unHoldButton.isPressed THEN
 	getSignal := unHoldSignal;
 	RETURN;
 	
-ELSIF suspendButton THEN
+ELSIF suspendButton.isPressed THEN
 	getSignal := suspendSignal;
 	RETURN;
 	
-ELSIF unSuspendButton THEN
+ELSIF unSuspendButton.isPressed THEN
 	getSignal := unSuspendSignal;
 	RETURN;
+*)
 
 ELSIF productionModeButton THEN
 	getSignal := productionModeSignal;
@@ -125,6 +115,42 @@ END_IF
 ]]></ST>
       </Implementation>
     </Method>
+    <Method Name="initialize" Id="{552b0bea-8fe9-4a81-9966-6369586cdd98}">
+      <Declaration><![CDATA[METHOD initialize	:	BOOL
+VAR_INPUT
+	arg1 	:	E_PMLProtectedUnitMode;
+	arg2	:	E_PMLCommand;
+	arg3	:	POINTER TO ARRAY[1..CONST_GV.nSubUnits] OF UnitBaseClass;
+END_VAR
+VAR
+	i	:	UINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// initialize sub units
+FOR i:=1 TO CONST_GV.nSubUnits BY 1 DO
+	// if any of the sub units is uninitialized then the whole machine is too
+	IF NOT arg3^[i].initialize(arg1:=arg1, arg2:=arg2, arg3:=0) THEN
+		RETURN;
+	END_IF
+END_FOR
+
+// initialize self
+unitModeManager.bExecute := TRUE;
+IF (NOT (SUPER^.setMode(modeCommand:=arg1) AND SUPER^.setState(command := arg2)) ) THEN
+	unitModeManager.bExecute := FALSE;
+	RETURN;
+END_IF
+
+resetButton.isLit 				:= TRUE;
+startButton.isLit 				:= TRUE;
+stopButton.isLit				:= TRUE;
+
+THIS^.subUnits 					:= arg3;
+THIS^.initialized 				:= TRUE;
+initialize 						:= TRUE;]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="setMode" Id="{6cffb050-7983-4a44-b97a-e4ac48023a93}">
       <Declaration><![CDATA[METHOD setMode : BOOL
 VAR_INPUT
@@ -132,7 +158,9 @@ VAR_INPUT
 END_VAR
 VAR
 	prevMode	:	E_PMLProtectedUnitMode;
-END_VAR]]></Declaration>
+	i			:	UINT;
+END_VAR
+]]></Declaration>
       <Implementation>
         <ST><![CDATA[// if any of the subUnits cannot change mode to given mode return false
 FOR i:=1 TO CONST_GV.nSubUnits BY 1 DO
@@ -169,7 +197,7 @@ VAR_INPUT
 END_VAR
 VAR
 	prevState	:	E_PMLState;
-	i			:	INT;
+	i			:	UINT;
 END_VAR
 ]]></Declaration>
       <Implementation>
@@ -184,35 +212,7 @@ SUPER^.setState(command:=command);
 setState := TRUE;]]></ST>
       </Implementation>
     </Method>
-    <Method Name="setSubUnits" Id="{a79c9608-393b-4cda-b3b8-4d26a056df0e}">
-      <Declaration><![CDATA[METHOD setSubUnits : BOOL
-VAR_INPUT
-	inSubUnits	:	POINTER TO ARRAY[1..CONST_GV.nSubUnits] OF UnitBaseClass;
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[IF subUnits <> 0 THEN
-	setSubUnits := FALSE;
-	RETURN;
-END_IF
-
-subUnits := inSubUnits;
-setSubUnits := TRUE;]]></ST>
-      </Implementation>
-    </Method>
     <LineIds Name="PackagingMachine">
-      <LineId Id="9" Count="0" />
-      <LineId Id="33" Count="0" />
-      <LineId Id="48" Count="0" />
-      <LineId Id="50" Count="0" />
-      <LineId Id="62" Count="0" />
-      <LineId Id="51" Count="1" />
-      <LineId Id="63" Count="0" />
-      <LineId Id="58" Count="0" />
-      <LineId Id="66" Count="0" />
-      <LineId Id="59" Count="2" />
-      <LineId Id="57" Count="0" />
-      <LineId Id="34" Count="0" />
       <LineId Id="104" Count="0" />
     </LineIds>
     <LineIds Name="PackagingMachine.getSignal">
@@ -220,6 +220,11 @@ setSubUnits := TRUE;]]></ST>
       <LineId Id="9" Count="0" />
       <LineId Id="12" Count="0" />
       <LineId Id="14" Count="0" />
+      <LineId Id="86" Count="0" />
+      <LineId Id="90" Count="0" />
+      <LineId Id="89" Count="0" />
+      <LineId Id="85" Count="0" />
+      <LineId Id="87" Count="1" />
       <LineId Id="26" Count="0" />
       <LineId Id="16" Count="2" />
       <LineId Id="27" Count="0" />
@@ -227,11 +232,13 @@ setSubUnits := TRUE;]]></ST>
       <LineId Id="19" Count="2" />
       <LineId Id="28" Count="0" />
       <LineId Id="22" Count="2" />
+      <LineId Id="76" Count="0" />
       <LineId Id="29" Count="0" />
       <LineId Id="25" Count="0" />
       <LineId Id="30" Count="7" />
       <LineId Id="42" Count="5" />
       <LineId Id="52" Count="0" />
+      <LineId Id="77" Count="0" />
       <LineId Id="48" Count="0" />
       <LineId Id="53" Count="1" />
       <LineId Id="59" Count="0" />
@@ -242,6 +249,26 @@ setSubUnits := TRUE;]]></ST>
       <LineId Id="13" Count="0" />
       <LineId Id="10" Count="0" />
       <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="PackagingMachine.initialize">
+      <LineId Id="30" Count="0" />
+      <LineId Id="8" Count="2" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="76" Count="0" />
+      <LineId Id="69" Count="1" />
+      <LineId Id="72" Count="0" />
+      <LineId Id="74" Count="1" />
+      <LineId Id="49" Count="0" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="38" Count="0" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="31" Count="0" />
     </LineIds>
     <LineIds Name="PackagingMachine.setMode">
       <LineId Id="9" Count="7" />
@@ -257,14 +284,6 @@ setSubUnits := TRUE;]]></ST>
       <LineId Id="29" Count="0" />
       <LineId Id="34" Count="0" />
       <LineId Id="33" Count="0" />
-    </LineIds>
-    <LineIds Name="PackagingMachine.setSubUnits">
-      <LineId Id="7" Count="1" />
-      <LineId Id="10" Count="0" />
-      <LineId Id="9" Count="0" />
-      <LineId Id="11" Count="0" />
-      <LineId Id="5" Count="0" />
-      <LineId Id="12" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>
